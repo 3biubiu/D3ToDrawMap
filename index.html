@@ -8,7 +8,15 @@
     <title>Document</title>
     <script src="./resources/map.js"></script>
     <script src="https://d3js.org/d3.v5.js"></script>
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
 </head>
+<style>
+    .continent-path {}
+
+    .continent-path:hover {
+        fill: aquamarine;
+    }
+</style>
 
 <body>
 
@@ -21,30 +29,37 @@
     // import * as d3 from "d3";
     const svgW = 1000
     const svgH = 1000
+    const colors = ['white', 'blue', 'red'];
     const svg = d3.select(".map")
     svg.attr('viewBox', `0 0 1000 1000`)
     svg.attr("width", svgW).attr("height", svgH)
         .attr('xmlns', 'http://www.w3.org/2000/svg')
     // .attr('transform-origin', `${svgWidth / 2} ${svgHeight / 2}`)
     const g = svg.append('g').attr("class", 'path-wrap').attr("width", svgW).attr("height", svgH)
-    g.attr("transform", () => {return `rotate(50 ${svgW / 2 + 100}  ${svgH / 2 })`})
-    const projection = d3.geoMercator() //墨卡托投影
+    g.attr("transform", () => { return `rotate(50 ${svgW / 2 + 100}  ${svgH / 2})` })
+    const projection = d3.geoMercator()
         .fitSize([svgW, svgH], mapJson)
-        // 注意 此处的center指的是地图经纬度数据上的中心点,而非画布尺寸的中心,请不要设置为[0,0] ,否则地图将会在0,0经纬度为基准的情况下绘制
-        .center([116.418757, 39.917544])  //链式写法，.center([longitude, latitude])设置地图中心,值为查询到的北京中心经纬度
-        .scale([38000])   //.scale([value])设置地图缩放
-        .translate([svgW / 2, svgH]) //.translate([x,y])设置偏移
-    // 根据我们配置好的投影计算出需要绘制的路径参数
+        // 使用南京市的中心经纬度
+        .center([116.418757, 39.917544])  //链式写法，.center([longitude, latitude])设置地图中心(真实维度) // 
+        .scale([18000])   //.scale([value])设置地图缩放
+    // .translate([svgW / 2, svgH / 2]) //.translate([x,y])设置偏移
+    mapJson.features = mapJson.features.map(function (feature) {
+        return turf.rewind(feature, { reverse: true });
+    })
     const pathGenerator = d3.geoPath()
-        .projection(projection); //配置上投影
-    // 开始绘制
+        .projection(projection)
+    // console.log('pathGenerator: ', pathGenerator);
     const mapPath = g.selectAll("path")
         .data(mapJson.features) //数据绑定
+        // .enter()
+        // .append("path")
         .join("path")
+        .attr("class", "continent-path")
         .attr("d", pathGenerator) //绘制path
-        .attr("stroke-width", 1)
-        .attr("stroke", "#000000")
-        .attr("fill", "#ffffff");
+        .attr("stroke-width", 1.60347)
+        .attr("stroke", "#000")
+        // .attr('fill-rule',  'evenodd')
+        .style("fill", (d, i) => d3.schemeSet2[i % 3])
 
 </script>
 
