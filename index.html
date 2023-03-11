@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./resources/map.js"></script>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+</head>
+<style>
+    .continent-path {}
+
+    .continent-path:hover {
+        fill: aquamarine;
+    }
+</style>
+
+<body>
+    <svg class="map" style="display: inline-block;"> </svg>
+</body>
+
+<script>
+
+    const svgW = 1000
+    const svgH = 1000
+    const colors = ['white', 'blue', 'red'];
+    const svg = d3.select(".map")
+    svg.attr('viewBox', `0 0 1000 1000`)
+    svg.attr("width", svgW).attr("height", svgH)
+        .attr('xmlns', 'http://www.w3.org/2000/svg')
+        // .attr("stroke-width", 1.60347)
+        // .attr("stroke", "#000")
+
+    mapJson.features = mapJson.features.map(function (feature) {
+        return turf.rewind(feature, { reverse: true });
+    })
+    const g = svg.append('g').attr("class", 'path-wrap').attr("width", svgW).attr("height", svgH)
+    const projection = d3.geoMercator()
+        // .fitExtent([[0, 0], [svgW, svgH]], mapJson)
+    // 使用南京市的中心经纬度
+    .center([116.418757, 39.917544])  //链式写法，.center([longitude, latitude])设置地图中心(真实维度) // 
+    .scale([18000])   //.scale([value])设置地图缩放
+    .translate([svgW / 2, svgH / 2]) //.translate([x,y])设置偏移
+
+    const pathGenerator = d3.geoPath()
+        .projection(projection)
+    // console.log('pathGenerator: ', pathGenerator);
+    const mapDraw = g.selectAll("path")
+        .data(mapJson.features) //数据绑定
+    mapDraw.join("path")
+        .attr("class", "continent-path")
+        .attr("d", pathGenerator) //绘制path
+        .attr("stroke-width", 1.60347)
+        .attr("stroke", "#000")
+        .style("fill", (d, i) => d3.schemeSet2[i % 3])
+    mapDraw.join('text').attr("class", "continent-text")
+        .attr('transform', (d) => {
+            return `translate(${projection(d.properties.centroid)})`
+        })
+        .text((d) => {
+            return d.properties.name
+        })
+
+</script>
+
+</html>
