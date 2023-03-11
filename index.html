@@ -19,14 +19,11 @@
 </style>
 
 <body>
-
     <svg class="map" style="display: inline-block;"> </svg>
-
 </body>
 
 <script>
-    // import mapJson from "./resources/shanghai.js"
-    // import * as d3 from "d3";
+
     const svgW = 1000
     const svgH = 1000
     const colors = ['white', 'blue', 'red'];
@@ -34,32 +31,38 @@
     svg.attr('viewBox', `0 0 1000 1000`)
     svg.attr("width", svgW).attr("height", svgH)
         .attr('xmlns', 'http://www.w3.org/2000/svg')
-    // .attr('transform-origin', `${svgWidth / 2} ${svgHeight / 2}`)
-    const g = svg.append('g').attr("class", 'path-wrap').attr("width", svgW).attr("height", svgH)
-    g.attr("transform", () => { return `rotate(50 ${svgW / 2 + 100}  ${svgH / 2})` })
-    const projection = d3.geoMercator()
-        .fitSize([svgW, svgH], mapJson)
-        // 使用南京市的中心经纬度
-        .center([116.418757, 39.917544])  //链式写法，.center([longitude, latitude])设置地图中心(真实维度) // 
-        .scale([18000])   //.scale([value])设置地图缩放
-    // .translate([svgW / 2, svgH / 2]) //.translate([x,y])设置偏移
+        // .attr("stroke-width", 1.60347)
+        // .attr("stroke", "#000")
+
     mapJson.features = mapJson.features.map(function (feature) {
         return turf.rewind(feature, { reverse: true });
     })
+    const g = svg.append('g').attr("class", 'path-wrap').attr("width", svgW).attr("height", svgH)
+    const projection = d3.geoMercator()
+        // .fitExtent([[0, 0], [svgW, svgH]], mapJson)
+    // 使用南京市的中心经纬度
+    .center([116.418757, 39.917544])  //链式写法，.center([longitude, latitude])设置地图中心(真实维度) // 
+    .scale([18000])   //.scale([value])设置地图缩放
+    .translate([svgW / 2, svgH / 2]) //.translate([x,y])设置偏移
+
     const pathGenerator = d3.geoPath()
         .projection(projection)
     // console.log('pathGenerator: ', pathGenerator);
-    const mapPath = g.selectAll("path")
+    const mapDraw = g.selectAll("path")
         .data(mapJson.features) //数据绑定
-        // .enter()
-        // .append("path")
-        .join("path")
+    mapDraw.join("path")
         .attr("class", "continent-path")
         .attr("d", pathGenerator) //绘制path
         .attr("stroke-width", 1.60347)
         .attr("stroke", "#000")
-        // .attr('fill-rule',  'evenodd')
         .style("fill", (d, i) => d3.schemeSet2[i % 3])
+    mapDraw.join('text').attr("class", "continent-text")
+        .attr('transform', (d) => {
+            return `translate(${projection(d.properties.centroid)})`
+        })
+        .text((d) => {
+            return d.properties.name
+        })
 
 </script>
 
